@@ -1,0 +1,855 @@
+% !TEX program = xelatex
+% !TEX encoding = UTF-8
+%============================================================================
+% TrajVis Studio -- Requirements Analysis Specification (Task 3)
+% Course : Software Engineering -- 2026 Fall
+% Group  : 1  /  Team: 泓泓说的都队
+% Author : Chen Hongzhou (Student No. 1240007950), team leader
+%
+% Route  : Option 2, object-oriented requirements analysis (task description
+%          Part A allows either Option 1, structured, or Option 2, OO).
+% Layout : follows "Surface for Requirements Analysis.docx" for the cover,
+%          the running header/footer and the front matter order.
+% Every item still to be confirmed is marked \tbd{...} and prints in red.
+% Diagrams live in figures/<name>.png; run tools/build-diagrams.sh to make
+% them from the .puml sources.  A missing diagram prints a red notice
+% instead of failing the build.
+%============================================================================
+\documentclass[12pt,a4paper]{report}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Helvetica}
+\usepackage{xeCJK}
+\setCJKmainfont{Songti SC}
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds}
+\usepackage[hidelinks]{hyperref}
+
+% Let long URLs break at slashes instead of running into the margin, and set
+% them in the body font rather than the monospace one.
+\urlstyle{same}
+\makeatletter
+\g@addto@macro\UrlBreaks{\do\/\do\-\do\.\do\_\do\:}
+\makeatother
+
+% Long identifiers and URLs should break instead of running into the margin.
+\emergencystretch=3em
+
+% Diagrams are included at exactly the width of the text block.  They are
+% made squarish at the source (see the header comment in each .puml) so that
+% scaling them to this width still leaves the labels at 8 pt or more; letting
+% a diagram overhang into the margin instead would keep every figure out of
+% the "0 overfull boxes" check that the rest of the report is held to, and a
+% figure that sticks out of the text block is the first thing a marker sees.
+\newcommand{\diagwidth}{\textwidth}
+
+% --- Running header and footer -----------------------------------------
+% Every page carries the running title of its chapter at the left of the
+% header over a dark rule (the Surface template colours that rule 622423),
+% and the page number centred in the footer.
+\usepackage{fancyhdr}
+% Times New Roman at 12pt needs a taller header box than the 12pt default;
+% take the extra height off \topmargin so the text block does not move down.
+\setlength{\headheight}{25pt}
+\addtolength{\topmargin}{-10pt}
+\definecolor{mustrule}{HTML}{622423}
+\newcommand{\surfacehead}{%
+  \fancyhead[L]{\small\nouppercase{\leftmark}}%
+  \fancyfoot[C]{\small\thepage}%
+  \renewcommand{\headrulewidth}{1.1pt}%
+  \renewcommand{\headrule}{%
+    \hbox to\headwidth{\color{mustrule}%
+      \leaders\hrule height \headrulewidth\hfill}}%
+}
+\pagestyle{fancy}
+\fancyhf{}
+\surfacehead
+% Chapter-opening pages use the "plain" style; give it the same furniture.
+\fancypagestyle{plain}{\fancyhf{}\surfacehead}
+% Header text is "Chapter N <title>", unnumbered front matter just its title.
+\def\chaptermark#1{\markboth{Chapter \thechapter\enspace #1}{}}
+\def\sectionmark#1{\markright{\thesection\enspace #1}}
+
+% Chapter-based numbering, e.g. "Figure 2-1", "Table 3-2"
+\renewcommand{\thefigure}{\thechapter-\arabic{figure}}
+\renewcommand{\thetable}{\thechapter-\arabic{table}}
+
+% The template names these two sections "Table of Contents" and "References"
+% rather than the class defaults "Contents" and "Bibliography".
+\renewcommand{\contentsname}{Table of Contents}
+\renewcommand{\bibname}{References}
+
+% --- Work markers -------------------------------------------------------
+% Anything still to be settled prints in red so it cannot ship unnoticed.
+% Run `grep -n '\\tbd' report.tex` before submitting; the list must be empty.
+\newcommand{\tbd}[1]{{\color{red}\textbf{[TO BE CONFIRMED: #1]}}}
+% Compact form for table cells, where the full wording would widen a column.
+\newcommand{\tbc}[1]{{\color{red}\textbf{[TBC: #1]}}}
+\newcommand{\src}[1]{{\small\itshape (Source: #1)}}
+
+% --- Diagram slot -------------------------------------------------------
+% Includes figures/<file>.png when the diagram has been built, and otherwise
+% prints a red notice in its place.  This keeps the document compiling while
+% the diagrams are still being drawn, and makes an unbuilt diagram visible
+% rather than silently absent.
+\newcommand{\diagram}[2]{%
+  \IfFileExists{figures/#1.png}%
+    {\includegraphics[width=\diagwidth]{figures/#1.png}}%
+    {\fboxsep=10pt\fbox{\parbox[c][4.6cm][c]{0.86\textwidth}{\centering
+       {\color{red}\bfseries [DIAGRAM NOT BUILT YET]}\\[8pt]
+       {\ttfamily figures/#1.png}\\[8pt]
+       {\small #2}}}}%
+}
+
+% --- Use-case description block -----------------------------------------
+% The seven fields every use case in Chapter 2 is described by.  #1..\#7 are
+% Actor, Goal, Preconditions, Main success scenario, Alternative flows,
+% Postconditions and Requirements traced.
+\newcommand{\ucdesc}[7]{%
+  \begin{table}[H]
+  \centering
+  {\small
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabular}{@{}>{\bfseries}p{2.9cm} >{\raggedright\arraybackslash}p{12.2cm}@{}}
+    \toprule[1.5pt]
+    Actor & #1 \\ \midrule
+    Goal & #2 \\ \midrule
+    Preconditions & #3 \\ \midrule
+    Main success scenario & #4 \\ \midrule
+    Alternative flows & #5 \\ \midrule
+    Postconditions & #6 \\ \midrule
+    Traces to & #7 \\
+    \bottomrule[1.5pt]
+  \end{tabular}}
+  \end{table}
+}
+
+\begin{document}
+
+%============================================================================
+% COVER PAGE
+%============================================================================
+\begin{titlepage}
+  \begin{tikzpicture}[remember picture, overlay]
+    \foreach \off in {24, 26.5, 29} {
+      \draw[line width=0.6pt]
+        ([shift={(\off pt, -\off pt)}]current page.north west)
+        rectangle
+        ([shift={(-\off pt, \off pt)}]current page.south east);
+    }
+  \end{tikzpicture}
+
+  \linespread{1.5}\selectfont
+  \fontsize{15pt}{18pt}\selectfont
+  \centering
+
+  \vspace*{1.2cm}
+  \includegraphics[height=3cm]{logo.jpeg}
+
+  \vspace{2\baselineskip}
+  {\bfseries MACAU UNIVERSITY OF SCIENCE AND\\ TECHNOLOGY\par}
+
+  \vspace{\baselineskip}
+  {\bfseries School of Computer Science and Engineering\par}
+  {\bfseries Faculty of Innovation Engineering\par}
+
+  \vspace{2\baselineskip}
+  % The template writes literal "<<" and ">>".  Two adjacent "<" are a T1
+  % ligature that renders as the guillemet <<, so put an empty group between
+  % them to stop the ligature from forming.
+  {\bfseries <{}<{}Software Project for Course Software Engineering>{}>\par}
+
+  \vspace{2\baselineskip}
+  \parbox{\textwidth}{\hspace*{1.5cm}%
+    \begin{tabular}{@{}l@{: }>{\raggedright\arraybackslash}p{10.5cm}@{}}
+      Homework ID  & Task3-Requirements Analysis \\
+      Report Title & TrajVis Studio: Requirements Analysis
+                     Specification \\
+      Group Number & 1 \\
+      Team Members & \begin{tabular}[t]{@{}l@{\hspace{1.2em}}l@{}}
+                       Chen Hongzhou & 1240007950 \quad (team leader) \\
+                       Zhou Guoxi    & 1240007947 \\
+                       Xu Jing       & 1240007919
+                     \end{tabular} \\
+      Date         & \tbd{submission date} \\
+    \end{tabular}}
+\end{titlepage}
+
+%============================================================================
+% FRONT MATTER
+% The template numbers the front matter in upper Roman (the cover counts as
+% I, so the Abstract is II) and starts Arabic page 1 at Chapter 1.
+%============================================================================
+\pagenumbering{Roman}
+\setcounter{page}{2}
+
+\chapter*{Abstract}
+\markboth{Abstract}{}
+% \chapter* does not enter the contents, but the template's contents lists
+% the Abstract, so add it by hand.  It must come after the \chapter*: that
+% command starts with \clearpage, and a mark set before it would land on
+% the page being closed.
+\addcontentsline{toc}{chapter}{Abstract}
+
+This document is the requirements analysis for \textbf{TrajVis Studio}, the
+system proposed in Task~1 and specified in Task~2. It models the system
+using object-oriented analysis, which is one of the two routes Part~A of the
+task description permits.
+
+The analysis is presented in the three stages the task description
+prescribes for the object-oriented route. \textbf{Functional modelling}
+(Chapter~\ref{ch:use-cases}) fixes the boundary of the system by naming its
+actors and its use cases. \textbf{Static modelling}
+(Chapter~\ref{ch:static}) identifies the classes the system is made of,
+their attributes, their operations and the relationships between them.
+\textbf{Dynamic modelling} (Chapter~\ref{ch:seq}) traces, for every use
+case, the sequence of messages that carries it out.
+Chapter~\ref{ch:state} adds a state diagram for the one object whose
+behaviour is genuinely state-dependent, which Part~A welcomes as an extra.
+
+Every model element is traced back to the requirement it satisfies, so that
+the analysis can be checked against Task~2 one item at a time. Content that
+depends on the customer assigned under Task~2 Part~A source~1, or on the
+elicitation that is still outstanding, is printed in red
+{\color{red}\textbf{like this}} and is not invented.
+
+% The class already sets the running mark for these three lists, so no
+% \markboth here: doing it beforehand would leak the next title onto the
+% page being closed.
+\tableofcontents
+\addcontentsline{toc}{chapter}{Table of Contents}
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+
+%============================================================================
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Purpose}
+\label{sec:purpose}
+
+This document is the Requirements Analysis Specification (RAS) for
+\textbf{TrajVis Studio}, prepared by Group~1 for Task~3. Task~2 said
+\emph{what} the system must do; this document says \emph{how the system is
+put together} to do it.
+
+It serves three readers. The \textbf{build team} takes the class diagram and
+the sequence diagrams as the design it implements against, so that Task~4
+and the code that follows are a continuation of this document rather than a
+fresh start. The \textbf{assigned customer} sees the use cases as the agreed
+boundary of the system and can object to a use case that is missing or
+wrongly scoped before any code exists. The \textbf{course assessors} check
+that every model element can be traced to a stated requirement.
+
+\section{Notation}
+\label{sec:notation}
+
+All diagrams in this document use the Unified Modelling Language (UML), and
+all of them were drawn with a diagram tool rather than by hand, as Part~B(2)
+of the task description requires. In addition:
+
+\begin{itemize}
+  \item Every use case carries an identifier \texttt{UC-$n$} and every class
+    an identifier of the form \texttt{C-$n$}. Requirements keep the
+    identifiers they were given in Task~2, \texttt{REQ-1.1} to
+    \texttt{REQ-1.6}.
+  \item In the class diagram, an association end marked with a filled diamond
+    is a composition and one marked with a hollow diamond is an aggregation;
+    an unmarked end is a plain association.
+  \item In the sequence diagrams, a solid arrow is a synchronous call, a
+    dashed arrow is a return, and a bar on the lifeline is the period during
+    which the participant is active.
+  \item \tbd{one line explaining any other notational convention used later
+    in the document, if any is introduced}
+\end{itemize}
+
+\section{Scope}
+\label{sec:scope}
+
+\subsection{In scope}
+The analysis covers the whole round trip the system performs: understanding
+a question written in ordinary language, retrieving and filtering the
+records the question refers to, choosing and drawing the figure, describing
+the result in words, recording the exchange so it can be re-run, and
+measuring the system's own accuracy against a recorded benchmark.
+
+\subsection{Out of scope}
+The analysis does not cover the collection or the cleaning of the movement
+data, since the system reads records that already exist. It does not cover
+planning decisions, a mobile client or a public web service, all of which
+Task~2 placed out of scope and which therefore have no use case here.
+
+\section{Relation to the Earlier Deliverables}
+\label{sec:relation}
+
+Task~1 proposed the project and Task~2 stated the requirements; this
+document is the third and last step before design and coding. The mapping
+is direct: the six functional requirements \texttt{REQ-1.1} to
+\texttt{REQ-1.6}, which came from features F1 to F6 of Task~1, become the
+six use cases \texttt{UC-1} to \texttt{UC-6} of Chapter~\ref{ch:use-cases}.
+Each of those use cases is then realised by the classes of
+Chapter~\ref{ch:static} and by one sequence diagram in
+Chapter~\ref{ch:seq}.
+
+Task~2 left 78 items to be confirmed, most of them waiting on the customer
+assigned under Part~A source~1 and on the elicitation that has not yet been
+carried out. This analysis does not wait for them: the parts of the model
+that are independent of the customer are complete, and the parts that are
+not are marked in red and left open.
+
+\section{Contributions}
+\label{sec:contributions}
+
+% Required by the second point of the course notice of 2026-10-08: every
+% report must name what each member contributed to that report.
+\tbd{name, for each of the three members, what that member contributed to
+this report. The division has to be settled first; do not write it by
+guessing. Once the diagrams are drawn and the use cases written, the split
+is a real one: two members can take three use cases each, with the class
+diagram, the sequence diagrams and the write-up divided along the same
+lines as Table~\ref{tab:pairing}.}
+
+\section{Overview}
+\label{sec:overview}
+
+Chapter~\ref{ch:use-cases} names the actors and the use cases and describes
+each use case in full. Chapter~\ref{ch:static} identifies the classes and
+presents the class diagram and an object diagram.
+Chapter~\ref{ch:seq} gives a sequence diagram for every use case, and
+Chapter~\ref{ch:state} adds a state diagram.
+
+%============================================================================
+\chapter{Functional Modelling: Use Cases}
+\label{ch:use-cases}
+
+\section{Actors}
+\label{sec:actors}
+
+An actor is a role played by a person or by another system that interacts
+with the system being analysed. The three human roles are the ones Task~2
+already identified in its Table~2-1; the two system roles are the sources
+the system reads.
+
+\begin{table}[H]
+  \centering
+  \caption{Actors and the role each plays.}
+  \label{tab:actors}
+  % Fixed widths: "Reviewer or auditor" and "Trajectory data store" are both
+  % too wide for an "l" column, and an "l" column cannot wrap, so the table
+  % would run past the 16cm text block.
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.2cm}
+                    >{\raggedright\arraybackslash}p{2.5cm}
+                    >{\raggedright\arraybackslash}p{9.0cm}@{}}
+    \toprule[1.5pt]
+    \textbf{Actor} & \textbf{Kind} & \textbf{Role} \\
+    \midrule
+    Analyst & Human, primary &
+      A person with a question about recorded movement who cannot write a
+      data query. Starts almost every use case. \src{Task~2, Table~2-1} \\
+    \addlinespace
+    Reviewer or auditor & Human, secondary &
+      Checks how a past answer was produced and re-runs it. \\
+    \addlinespace
+    Assigned customer & Human, secondary &
+      The team assigned by the Moodle group table; confirms that the
+      analysis matches the requirement. \src{Task~2, Part~A source~1} \\
+    \addlinespace
+    Trajectory data store & System &
+      Holds the recorded movement the system reads. Never written to. \\
+    \addlinespace
+    Recorded benchmark & System &
+      Holds published question-and-answer pairs used to measure the
+      system's own accuracy. \\
+    \bottomrule[1.5pt]
+  \end{tabular}
+\end{table}
+
+\tbd{whether the assigned customer team introduces an actor of its own ---
+the actor list cannot be closed until Part~A source~1 has been elicited}
+
+\section{Use Case Diagram}
+\label{sec:uc-diagram}
+
+Figure~\ref{fig:uc} shows the boundary of the system and the use cases it
+offers. The six use cases correspond one to one with the six functional
+requirements of Task~2, so the diagram can be read against Task~2 without a
+translation table.
+
+\begin{figure}[H]
+  \centering
+  \diagram{uc-diagram}{Use case diagram: the actors, the system boundary and
+    the six use cases. Source: \texttt{figures/uc-diagram.puml}.}
+  \caption{Use case diagram.}
+  \label{fig:uc}
+\end{figure}
+
+Four of the six use cases are refinements of one another rather than
+independent goals, and the diagram records this with \texttt{include}: a
+question cannot be answered without first being interpreted, and a figure
+cannot be drawn without first retrieving the records. \texttt{UC-5} and
+\texttt{UC-6} stand on their own, because the accuracy dashboard and the
+re-run of a past exchange can each be used without asking a new question.
+
+\section{Use Case Descriptions}
+\label{sec:uc-desc}
+
+Each use case is described below by the same seven fields, so that the
+descriptions can be compared with one another and, later, with the sequence
+diagrams of Chapter~\ref{ch:seq}.
+
+\subsection{UC-1: Ask a Question in Ordinary Language}
+\label{uc:1}
+\ucdesc{Analyst}
+  {Obtain an exact written request from a question typed in ordinary
+   language, without writing a query.}
+  {The analyst has opened the system. The trajectories of interest are
+   already held in the data store.}
+  {\tbd{the numbered steps, once the format has been agreed with the
+   customer. Draft from Task~2 REQ-1.1 and Task~1 \S3.4, feature F1.}}
+  {\tbd{what happens when the question cannot be interpreted at all}}
+  {The derived request is held for the rest of the session and shown back to
+   the analyst beside the question.}
+  {REQ-1.1}
+
+\subsection{UC-2: Retrieve and Filter Trajectories}
+\label{uc:2}
+\ucdesc{System (on behalf of the Analyst)}
+  {Find the trajectories the written request refers to and return only the
+   matching subset.}
+  {A written request exists.}
+  {\tbd{the numbered steps. Draft from Task~2 REQ-1.2 and Task~1 \S3.4,
+   feature F2.}}
+  {\tbd{what happens when no record matches, and when a place name in the
+   request cannot be resolved}}
+  {A subset of the records is selected and identified by a snapshot
+   identifier.}
+  {REQ-1.2}
+
+\subsection{UC-3: Select and Draw the Figure}
+\label{uc:3}
+\ucdesc{System (on behalf of the Analyst)}
+  {Choose the chart that fits the question and render it, with no chart type
+   or plotting tool chosen by the analyst.}
+  {A subset of records has been selected.}
+  {\tbd{the numbered steps. Draft from Task~2 REQ-1.3 and Task~1 \S3.4,
+   feature F3.}}
+  {\tbd{what happens when no chart type fits the question}}
+  {A figure is produced and held with the exchange.}
+  {REQ-1.3}
+
+\subsection{UC-4: Summarise the Result in Words}
+\label{uc:4}
+\ucdesc{System (on behalf of the Analyst)}
+  {Describe what the figure shows in one or two sentences, including the
+   extremes found.}
+  {A figure exists for this exchange.}
+  {\tbd{the numbered steps. Draft from Task~2 REQ-1.4 and Task~1 \S3.4,
+   feature F4.}}
+  {\tbd{what the system says when the summary cannot be produced}}
+  {A sentence or two is shown beside the figure.}
+  {REQ-1.4}
+
+\subsection{UC-5: Show the Accuracy Dashboard}
+\label{uc:5}
+\ucdesc{Reviewer or auditor}
+  {See how accurate the automatic interpretation currently is, measured
+   against the recorded benchmark.}
+  {The benchmark is available.}
+  {\tbd{the numbered steps. Draft from Task~2 REQ-1.5 and Task~1 \S3.4,
+   feature F5. \textbf{The accuracy figure itself is still open in Task~2
+   and must not be invented here.}}}
+  {\tbd{what happens when the benchmark cannot be reached}}
+  {A measured accuracy is displayed beside the answers.}
+  {REQ-1.5}
+
+\subsection{UC-6: Record and Re-run an Exchange}
+\label{uc:6}
+\ucdesc{Reviewer or auditor}
+  {See how a past answer was produced, and reproduce the same figure from
+   the record alone.}
+  {At least one exchange has been made.}
+  {\tbd{the numbered steps. Draft from Task~2 REQ-1.6 and Task~1 \S3.4,
+   feature F6.}}
+  {\tbd{what happens when the data behind a record has since changed}}
+  {The same figure is rebuilt from the stored question, request, snapshot
+   identifier and chart choice.}
+  {REQ-1.6}
+
+\section{Traceability to the Requirements}
+\label{sec:uc-trace}
+
+\begin{table}[H]
+  \centering
+  \caption{Every functional requirement of Task~2 is carried by exactly one
+    use case.}
+  \label{tab:uc-trace}
+  % Fixed widths: an "l" description column would be widened by the longest
+  % cell and would push the table past the text block.
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabular}{@{}l l >{\raggedright\arraybackslash}p{9.0cm}@{}}
+    \toprule[1.5pt]
+    \textbf{Requirement} & \textbf{Use case} & \textbf{What the use case
+      adds to the requirement} \\
+    \midrule
+    REQ-1.1 & UC-1 & Names the actor, the precondition and the failure
+      case that the requirement states only in outline. \\
+    \addlinespace
+    REQ-1.2 & UC-2 & Fixes the snapshot identifier as the handle by which
+      later steps refer to the selected subset. \\
+    \addlinespace
+    REQ-1.3 & UC-3 & Records that chart choice is the system's, not the
+      analyst's. \\
+    \addlinespace
+    REQ-1.4 & UC-4 & Makes the summary a precondition of a finished
+      exchange rather than an optional extra. \\
+    \addlinespace
+    REQ-1.5 & UC-5 & Separates the accuracy dashboard from the question
+      round trip, which the requirement does not do. \\
+    \addlinespace
+    REQ-1.6 & UC-6 & States that re-running needs the record alone, not the
+      data as it happens to stand now. \\
+    \bottomrule[1.5pt]
+  \end{tabular}
+\end{table}
+
+%============================================================================
+\chapter{Static Modelling: Class and Object Diagrams}
+\label{ch:static}
+
+\section{Finding the Classes}
+\label{sec:finding-classes}
+
+The classes were taken from the nouns the Task~2 requirements and use case
+descriptions use to talk about the domain, keeping those the system must
+remember and dropping those that are only a way of speaking. Each class
+below is given a name, the attributes it holds and the operations it
+offers; a class with attributes but no operations would be a data record,
+not a class, and the analysis is not complete until the operations have
+been decided. \src{SE Chapter~5, object-oriented analysis}
+
+\begin{table}[H]
+  \centering
+  \caption{Candidate classes and the reason each is kept or dropped.}
+  \label{tab:classes}
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}
+                    >{\raggedright\arraybackslash}p{5.2cm}
+                    >{\raggedright\arraybackslash}p{6.7cm}@{}}
+    \toprule[1.5pt]
+    \textbf{Class} & \textbf{Where it comes from} & \textbf{Why it is a
+      class} \\
+    \midrule
+    C-1 Trajectory & Movement records & The system must remember it, and it
+      is the subject of almost every question. \\
+    \addlinespace
+    C-2 Waypoint & Positions along a trajectory & A position has no meaning
+      apart from the trajectory that contains it, which makes the
+      relationship a composition. \\
+    \addlinespace
+    C-3 MapLayer & Background map data & Layers are held and switched
+      independently of any one trajectory. \\
+    \addlinespace
+    C-4 POI & Named places & Attached to a layer; a place can be
+      interesting to several layers. \\
+    \addlinespace
+    C-5 Chart & Figures the system draws & Generalises the three chart
+      kinds, which differ in how they are drawn but share a title, a scale
+      and an axis convention. \\
+    \addlinespace
+    C-6 Query & The analyst's question & Must be remembered so that an
+      exchange can be re-run. \\
+    \addlinespace
+    C-7 Exchange & One question and its answer & The unit the record and
+      the re-run of UC-6 operate on. \\
+    \addlinespace
+    C-8 Benchmark & Published question-and-answer pairs & Read, never
+      written; carried as a class so that UC-5 has something to run
+      against. \\
+    \addlinespace
+    C-9 AccuracyReport & The measured accuracy & What UC-5 displays. \\
+    \bottomrule[1.5pt]
+  \end{tabular}
+\end{table}
+
+\tbd{the classes that the assigned customer's own data model implies, once
+Part~A source~1 has been elicited}
+
+\section{Class Diagram}
+\label{sec:class-diagram}
+
+Figures~\ref{fig:class} and~\ref{fig:class-ex} show the classes with their
+attributes and their operations, and the relationships between them. They
+are drawn as two diagrams rather than one: a single diagram holding all
+twelve classes comes out about 1900 pixels wide, which at the width of the
+text block scales the labels below 6~pt and makes them unreadable, whereas
+each half stays above 9~pt. Figure~\ref{fig:class} holds the data classes
+and Figure~\ref{fig:class-ex} the classes that carry a question through to
+a recorded answer.
+
+\begin{figure}[H]
+  \centering
+  \diagram{class-diagram-domain}{Class diagram, part 1: the data classes.
+    Source: \texttt{figures/class-diagram-domain.puml}.}
+  \caption{Class diagram, part 1: the data classes.}
+  \label{fig:class}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \diagram{class-diagram-exchange}{Class diagram, part 2: the
+    question-and-answer classes. Source:
+    \texttt{figures/class-diagram-exchange.puml}.}
+  \caption{Class diagram, part 2: the question-and-answer classes.}
+  \label{fig:class-ex}
+\end{figure}
+
+\section{Relationships}
+\label{sec:relationships}
+
+\begin{table}[H]
+  \centering
+  \caption{Relationships between the classes, read from
+    Figures~\ref{fig:class} and~\ref{fig:class-ex}.}
+  \label{tab:relationships}
+  % "TrajectoryMap, ODFlowChart, HeatMap" is far too wide for an "l" column
+  % and cannot wrap in one, so every column here is given a fixed width.
+  \setlength{\tabcolsep}{4.5pt}
+  % The first and third columns are sized by their longest single word,
+  % "AccuracyReport" and "Generalisation": a p{} column wraps between words
+  % but a word wider than the column still runs into the margin.
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.85cm}
+                    >{\raggedright\arraybackslash}p{3.9cm}
+                    >{\raggedright\arraybackslash}p{2.7cm}
+                    >{\raggedright\arraybackslash}p{5.25cm}@{}}
+    \toprule[1.5pt]
+    \textbf{Whole} & \textbf{Part} & \textbf{Kind} & \textbf{Why} \\
+    \midrule
+    Trajectory & Waypoint & Composition & A waypoint has no meaning apart
+      from its trajectory; deleting the trajectory deletes its waypoints. \\
+    \addlinespace
+    MapLayer & POI & Aggregation & A place can outlive the layer it is
+      currently shown on. \\
+    \addlinespace
+    Chart & TrajectoryMap, ODFlowChart, HeatMap & Generalisation & The
+      three differ only in how they draw; the shared parts belong in the
+      parent. \\
+    \addlinespace
+    Exchange & Query, Chart & Aggregation & An exchange is built from a
+      question and the figure that answered it. \\
+    \addlinespace
+    AccuracyReport & Benchmark & Association & An accuracy figure is only
+      meaningful against the benchmark it was measured on. \\
+    \bottomrule[1.5pt]
+  \end{tabular}
+\end{table}
+
+\section{Object Diagram}
+\label{sec:object-diagram}
+
+Part~A of the task description names the object diagram as the static model
+to be provided. A class diagram says what kinds of thing may exist; an
+object diagram says what exists at one moment, with the links between the
+individual objects shown. Figure~\ref{fig:object} is the state of the
+system immediately after one question has been answered, which is the
+moment that makes every class in Figures~\ref{fig:class}
+and~\ref{fig:class-ex} visible at once.
+
+\begin{figure}[H]
+  \centering
+  \diagram{object-diagram}{Object diagram: one answered exchange, with the
+    links between the individual objects. Source:
+    \texttt{figures/object-diagram.puml}.}
+  \caption{Object diagram for one answered exchange.}
+  \label{fig:object}
+\end{figure}
+
+The two diagrams are consistent by construction: every object in
+Figure~\ref{fig:object} is an instance of exactly one class in
+Figures~\ref{fig:class} and~\ref{fig:class-ex}, every link between objects
+is an instance of one
+relationship in Table~\ref{tab:relationships}, and no object appears that
+has no class.
+
+\section{Traceability to the Requirements}
+\label{sec:static-trace}
+
+\begin{table}[H]
+  \centering
+  \caption{Classes, and the requirements they carry out.}
+  \label{tab:class-trace}
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.8cm}
+                    >{\raggedright\arraybackslash}p{3.0cm}
+                    >{\raggedright\arraybackslash}p{7.9cm}@{}}
+    \toprule[1.5pt]
+    \textbf{Class} & \textbf{Requirement} & \textbf{Operation that carries
+      it out} \\
+    \midrule
+    C-6 Query & REQ-1.1 & Interpreting a question written in ordinary
+      language into an exact request. \\
+    \addlinespace
+    C-1 Trajectory & REQ-1.2 & Filtering the stored trajectories against a
+      written request. \\
+    \addlinespace
+    C-5 Chart & REQ-1.3 & Choosing the chart kind that fits the question and
+      rendering it. \\
+    \addlinespace
+    C-7 Exchange & REQ-1.4, REQ-1.6 & Holding the summary with the figure,
+      and re-running the exchange from the record alone. \\
+    \addlinespace
+    C-8 Benchmark, C-9 AccuracyReport & REQ-1.5 & Re-running the recorded
+      benchmark and reporting the measured accuracy. \\
+    \bottomrule[1.5pt]
+  \end{tabular}
+\end{table}
+
+%============================================================================
+% Part A of the task description asks for a sequence diagram for *each* use
+% case, so there is one section per use case here; that is what fixes the
+% number of use cases in Chapter 2.
+%============================================================================
+\chapter{Dynamic Modelling: Sequence Diagrams}
+\label{ch:seq}
+
+This chapter gives one sequence diagram for each of the six use cases of
+Chapter~\ref{ch:use-cases}, as Part~A of the task description requires. A
+sequence diagram shows the messages that pass between the participants
+while the use case runs, in the order in which they pass, which is the
+dynamic counterpart of the class diagram: the classes say who may exchange
+messages, the sequence diagrams say in what order they do.
+
+\begin{figure}[H]
+  \centering
+  \diagram{seq-uc1}{Sequence diagram for UC-1, asking a question in
+    ordinary language.}
+  \caption{Sequence diagram for UC-1.}
+  \label{fig:seq1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \diagram{seq-uc2}{Sequence diagram for UC-2, retrieving and filtering
+    trajectories.}
+  \caption{Sequence diagram for UC-2.}
+  \label{fig:seq2}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \diagram{seq-uc3}{Sequence diagram for UC-3, selecting and drawing the
+    figure.}
+  \caption{Sequence diagram for UC-3.}
+  \label{fig:seq3}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \diagram{seq-uc4}{Sequence diagram for UC-4, summarising the result in
+    words.}
+  \caption{Sequence diagram for UC-4.}
+  \label{fig:seq4}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \diagram{seq-uc5}{Sequence diagram for UC-5, showing the accuracy
+    dashboard.}
+  \caption{Sequence diagram for UC-5.}
+  \label{fig:seq5}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \diagram{seq-uc6}{Sequence diagram for UC-6, recording and re-running an
+    exchange.}
+  \caption{Sequence diagram for UC-6.}
+  \label{fig:seq6}
+\end{figure}
+
+\section{Consistency with the Class Diagram}
+\label{sec:seq-consistency}
+
+Every message in Figures~\ref{fig:seq1} to~\ref{fig:seq6} is sent to a
+lifeline whose type is a class in Figures~\ref{fig:class}
+and~\ref{fig:class-ex}, and every message name is an operation of that
+class. Conversely, every operation in Figures~\ref{fig:class}
+and~\ref{fig:class-ex} appears in at least one sequence diagram; an
+operation that no use case calls would be a class member with no
+requirement behind it.
+
+%============================================================================
+% Task description Part A(4): further diagrams are welcome.  The state
+% diagram is the one extra that earns its place, because exactly one object
+% in the model --- the exchange --- has behaviour that depends on what state
+% it is in rather than only on the messages it receives.
+%============================================================================
+\chapter{Behavioural Modelling: State Diagram}
+\label{ch:state}
+
+Part~A(4) of the task description welcomes further diagrams beyond the three
+it requires. The one added here is a state diagram, because the model
+contains exactly one object whose behaviour depends on the state it is in
+rather than only on the messages it receives: an exchange, which Task~2's
+REQ-1.6 requires to be re-runnable after it is finished, and which may be
+re-run more than once.
+
+\begin{figure}[H]
+  \centering
+  \diagram{state-exchange}{State diagram for one exchange, from being asked
+    to being re-run.}
+  \caption{State diagram for an exchange.}
+  \label{fig:state}
+\end{figure}
+
+The transition from the finished state back to the re-run state is what
+makes the exchange re-runnable rather than a record that can only be read.
+\tbd{any further state-dependent object the assigned customer's own
+processes imply, once Part~A source~1 has been elicited}
+
+%============================================================================
+% \begin{thebibliography} is itself a \chapter*, so the \addcontentsline
+% must sit inside it; placed outside, the contents entry would take the
+% page number of the previous chapter's last page.
+%============================================================================
+\begin{thebibliography}{9}
+\addcontentsline{toc}{chapter}{References}
+\markboth{References}{}
+
+\bibitem{task1} Group~1, \emph{TrajVis Studio: A Self-Service Platform for
+  Natural-Language Trajectory Analysis}, Task~1 project proposal, Software
+  Engineering, MUST, 2026.
+
+\bibitem{task2} Group~1, \emph{TrajVis Studio: User Requirements
+  Specification}, Task~2 deliverable, Software Engineering, MUST, 2026.
+
+\bibitem{task3desc} \emph{Requirements Analysis}, Software Engineering,
+  MUST, 2026.
+
+\bibitem{template} \emph{Surface for Requirements Analysis}, template
+  supplied with Task~3, Software Engineering, MUST, 2026.
+
+\bibitem{repo} Project repository,
+  \url{https://github.com/chenhongzhou666/MUST-SE-TrajVis}
+
+\bibitem{ch5} \emph{SE Chapter 5: Requirements Analysis II (Object-Oriented
+  Analysis)}, lecture slides, Software Engineering, MUST, 2026.09.30.
+
+\end{thebibliography}
+
+\end{document}

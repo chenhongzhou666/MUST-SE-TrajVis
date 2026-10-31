@@ -1,0 +1,64 @@
+@startuml
+' Class diagram, part 2: the question-and-answer classes (Task 3, Chapter 3).
+' Build:  plantuml -tpng -charset UTF-8 figures/class-diagram-exchange.puml
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 15
+skinparam classAttributeIconSize 0
+skinparam nodesep 18
+skinparam ranksep 56
+skinparam ArrowColor #622423
+skinparam classBorderColor #622423
+skinparam classBackgroundColor #FBFAF9
+skinparam classHeaderBackgroundColor #EFE9E9
+
+hide circle
+hide empty members
+
+class Query {
+  - text : String
+  - language : Language
+  - derivedRequest : Request
+  + interpret() : Request
+  + asText() : String
+}
+
+class Snapshot {
+  - id : String
+  - takenAt : DateTime
+  - size : int
+  + trajectories() : List
+  + recreate(id : String) : Snapshot
+}
+
+class Exchange {
+  - id : String
+  - askedAt : DateTime
+  - summary : String
+  + record() : void
+  + rerun() : Exchange
+  + reproduceFigure() : Image
+}
+
+class Benchmark {
+  - name : String
+  - caseCount : int
+  + cases() : List
+}
+
+class AccuracyReport {
+  - measured : double
+  - measuredAt : DateTime
+  + compute(b : Benchmark) : AccuracyReport
+  + display() : String
+}
+
+Query "1" -- "0..*" Exchange : recorded in >
+Exchange "1" o-- "1" Snapshot : draws on >
+Exchange o-- "1" Chart : holds >
+AccuracyReport "1" --> "1" Benchmark : measured against >
+Exchange "0..*" --> "0..*" Trajectory : refers to >
+
+@enduml

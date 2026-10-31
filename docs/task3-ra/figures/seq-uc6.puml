@@ -1,0 +1,40 @@
+@startuml
+' Sequence diagram for UC-6, record and re-run an exchange.
+' Build:  plantuml -tpng -charset UTF-8 figures/seq-uc6.puml
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam maxMessageSize 150
+skinparam ArrowColor #622423
+skinparam sequenceActorBorderColor #622423
+skinparam sequenceParticipantBorderColor #622423
+skinparam sequenceLifeLineBorderColor #622423
+skinparam ParticipantBackgroundColor #FBFAF9
+skinparam ActorBackgroundColor #FBFAF9
+
+actor "Reviewer / Auditor" as R
+participant "ex1 : Exchange" as E
+participant "Store : TrajectoryStore" as S
+participant "Renderer" as RD
+
+R -> E : rerun()
+activate E
+E -> S : snapshot(snapshotId)
+activate S
+S --> E : the records behind SNAP-7
+deactivate S
+E -> RD : render(chartKind, records)
+activate RD
+RD --> E : the same figure
+deactivate RD
+E --> R : the same figure,\nfrom the record alone
+deactivate E
+note right of E
+  Only the stored question, request,
+  snapshot identifier and chart choice
+  are used; the data is not re-queried.
+end note
+
+@enduml

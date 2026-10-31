@@ -1,0 +1,44 @@
+@startuml
+' Use case diagram for TrajVis Studio (Task 3, Chapter 2).
+' Build:  plantuml -tpng -charset UTF-8 figures/uc-diagram.puml
+' The layout is kept squarish on purpose: a diagram much wider than the
+' 16 cm text block would be scaled down until its labels are unreadable.
+' With "left to right direction" this comes out 1574x534 and the labels
+' land at 7.2 pt; leaving the default top-to-bottom gives 860x910 and
+' 13.1 pt, so the default direction is the one used.
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 15
+skinparam packageStyle rectangle
+skinparam nodesep 26
+skinparam ranksep 34
+skinparam ArrowColor #622423
+skinparam actorBorderColor #622423
+skinparam usecaseBorderColor #622423
+skinparam packageBorderColor #622423
+
+actor Analyst
+actor "Reviewer /\nAuditor" as Reviewer
+actor "Assigned\nCustomer" as Customer
+
+rectangle "TrajVis Studio" {
+  usecase "UC-1\nAsk a question in\nordinary language" as UC1
+  usecase "UC-2\nRetrieve and filter\ntrajectories" as UC2
+  usecase "UC-3\nSelect and draw\nthe figure" as UC3
+  usecase "UC-4\nSummarise the\nresult in words" as UC4
+  usecase "UC-5\nShow the accuracy\ndashboard" as UC5
+  usecase "UC-6\nRecord and re-run\nan exchange" as UC6
+}
+
+Analyst --> UC1
+Reviewer --> UC6
+Reviewer --> UC5
+Customer --> UC6
+
+UC1 ..> UC2 : <<include>>
+UC2 ..> UC3 : <<include>>
+UC3 ..> UC4 : <<include>>
+
+@enduml

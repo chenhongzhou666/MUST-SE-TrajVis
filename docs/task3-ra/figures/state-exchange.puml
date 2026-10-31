@@ -1,0 +1,35 @@
+@startuml
+' State diagram for one Exchange (Task 3, Chapter 5, the extra diagram).
+' Build:  plantuml -tpng -charset UTF-8 figures/state-exchange.puml
+' The return edge from Finished to Re-running is what makes an exchange
+' re-runnable rather than a record that can only be read.
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam ArrowColor #622423
+skinparam StateBorderColor #622423
+skinparam StateBackgroundColor #FBFAF9
+skinparam nodesep 30
+skinparam ranksep 44
+
+[*] --> Asked : UC-1 starts
+
+state Asked : the question has been typed,\nbut not yet interpreted
+
+Asked --> Interpreted : interpret() succeeds
+Asked --> Rejected : interpret() fails
+Rejected --> Asked : the analyst rephrases
+Rejected --> [*] : the analyst gives up
+
+Interpreted --> Retrieved : a matching subset is selected
+Retrieved --> Drawn : a chart kind is chosen and rendered
+Drawn --> Summarised : a summary is produced
+Summarised --> Finished : record() writes the exchange
+
+Finished --> Rerunning : rerun() is called
+Rerunning --> Finished : reproduceFigure() returns
+Finished --> [*] : the record is discarded
+
+@enduml

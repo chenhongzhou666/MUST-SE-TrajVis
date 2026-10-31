@@ -1,0 +1,29 @@
+@startuml
+' Sequence diagram for UC-4, summarise the result in words.
+' Build:  plantuml -tpng -charset UTF-8 figures/seq-uc4.puml
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam maxMessageSize 150
+skinparam ArrowColor #622423
+skinparam sequenceParticipantBorderColor #622423
+skinparam sequenceLifeLineBorderColor #622423
+skinparam ParticipantBackgroundColor #FBFAF9
+
+participant "c1 : HeatMap" as C
+participant "Summariser" as S
+participant "ex1 : Exchange" as E
+
+C -> S : summarise(image, data)
+activate S
+S -> S : find the extremes
+S --> C : "Three streets stayed busy..."
+deactivate S
+C -> E : record(summary)
+activate E
+E --> C : recorded
+deactivate E
+
+@enduml

@@ -1,0 +1,88 @@
+@startuml
+' Class diagram, part 1: the data classes (Task 3, Chapter 3).
+' Build:  plantuml -tpng -charset UTF-8 figures/class-diagram-domain.puml
+'
+' Split from one larger diagram on purpose.  Drawn as a single diagram the
+' twelve classes come out about 1900 px wide, which at the 16 cm text block
+' scales the labels down to under 6 pt and makes them unreadable; split in
+' two, both halves stay above 9 pt.
+'
+' Every class carries operations as well as attributes: a class with only
+' attributes is a data record, and Chapter 5 asks for the services to be
+' determined.
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 15
+skinparam classAttributeIconSize 0
+skinparam nodesep 16
+skinparam ranksep 56
+skinparam ArrowColor #622423
+skinparam classBorderColor #622423
+skinparam classBackgroundColor #FBFAF9
+skinparam classHeaderBackgroundColor #EFE9E9
+
+hide circle
+hide empty members
+
+class Trajectory {
+  - id : String
+  - startTime : DateTime
+  - endTime : DateTime
+  + filter(q : Query) : Trajectory
+  + pointCount() : int
+  + boundingBox() : Extent
+}
+
+class Waypoint {
+  - at : DateTime
+  - latitude : double
+  - longitude : double
+  + distanceTo(o : Waypoint) : double
+}
+
+class MapLayer {
+  - name : String
+  - visible : boolean
+  + show() : void
+  + hide() : void
+  + places() : List
+}
+
+class POI {
+  - name : String
+  - category : String
+  - position : Coordinate
+  + matches(term : String) : boolean
+}
+
+abstract class Chart {
+  # title : String
+  # scale : Scale
+  # timeWindow : Interval
+  + {abstract} render(t : Trajectory) : Image
+  + {static} chooseKind(q : Query) : Chart
+  + labelAxes() : void
+}
+
+class TrajectoryMap {
+  + render(t : Trajectory) : Image
+}
+
+class ODFlowChart {
+  + render(t : Trajectory) : Image
+}
+
+class HeatMap {
+  + render(t : Trajectory) : Image
+}
+
+Trajectory "1" *-- "1..*" Waypoint : contains >
+MapLayer "1" o-- "0..*" POI : shows >
+Chart <|-- TrajectoryMap
+Chart <|-- ODFlowChart
+Chart <|-- HeatMap
+Trajectory ..> Chart : drawn as >
+
+@enduml

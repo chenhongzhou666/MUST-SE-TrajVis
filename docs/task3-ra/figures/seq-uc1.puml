@@ -1,0 +1,35 @@
+@startuml
+' Sequence diagram for UC-1, ask a question in ordinary language.
+' Build:  plantuml -tpng -charset UTF-8 figures/seq-uc1.puml
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam maxMessageSize 150
+skinparam ArrowColor #622423
+skinparam sequenceActorBorderColor #622423
+skinparam sequenceParticipantBorderColor #622423
+skinparam sequenceLifeLineBorderColor #622423
+skinparam ParticipantBackgroundColor #FBFAF9
+skinparam ActorBackgroundColor #FBFAF9
+
+actor Analyst
+participant "Question Screen" as UI
+participant "q1 : Query" as Q
+participant "Interpreter" as I
+
+Analyst -> UI : type("which streets stayed busy\nafter 9pm last week")
+activate UI
+UI -> Q : create(text, language)
+activate Q
+Q -> I : interpret(text)
+activate I
+I --> Q : derivedRequest
+deactivate I
+Q --> UI : q1 : Query
+deactivate Q
+UI --> Analyst : the written request,\nshown beside the question
+deactivate UI
+
+@enduml

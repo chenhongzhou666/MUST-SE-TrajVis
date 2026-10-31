@@ -1,0 +1,69 @@
+@startuml
+' Object diagram for TrajVis Studio (Task 3, Chapter 3).
+' Build:  plantuml -tpng -charset UTF-8 figures/object-diagram.puml
+' This is the state of the system immediately after one question has been
+' answered --- the one moment at which an instance of every class in the
+' class diagram exists at once.
+'
+' Field lines use the "alias : field = value" form; putting the fields in
+' the object declaration itself, separated by \n, is not accepted.
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 15
+skinparam nodesep 34
+skinparam ranksep 48
+skinparam ArrowColor #622423
+skinparam objectBorderColor #622423
+skinparam objectBackgroundColor #FBFAF9
+skinparam objectHeaderBackgroundColor #EFE9E9
+
+object "<u>analyst : Analyst</u>" as analyst
+object "<u>q1 : Query</u>" as q1
+q1 : text = "which streets stayed busy after 9pm"
+q1 : language = EN
+
+object "<u>ex1 : Exchange</u>" as ex1
+ex1 : id = "EX-0001"
+ex1 : snapshotId = "SNAP-7"
+ex1 : summary = "Three streets stayed busy..."
+
+object "<u>snap7 : Snapshot</u>" as snap7
+snap7 : selected = 412 trajectories
+
+object "<u>t88 : Trajectory</u>" as t88
+t88 : id = "T-88"
+t88 : startTime = 2026-09-28 21:00
+
+object "<u>w1 : Waypoint</u>" as w1
+w1 : at = 21:04
+w1 : lat = 22.1987
+w1 : lon = 113.5439
+
+object "<u>w2 : Waypoint</u>" as w2
+w2 : at = 21:11
+w2 : lat = 22.2013
+w2 : lon = 113.5471
+
+object "<u>c1 : HeatMap</u>" as c1
+c1 : title = "Evening activity"
+c1 : scale = 1:25000
+
+object "<u>bm1 : Benchmark</u>" as bm1
+bm1 : name = "recorded set"
+bm1 : caseCount = 9608
+
+object "<u>rep9 : AccuracyReport</u>" as rep9
+rep9 : measured = [TBC, Task 2]
+
+analyst --> q1 : asks
+q1 --> ex1 : recorded in
+ex1 --> snap7 : draws on
+snap7 --> t88 : holds
+t88 *--> w1 : contains
+t88 *--> w2 : contains
+ex1 --> c1 : shows
+rep9 --> bm1 : measured against
+
+@enduml

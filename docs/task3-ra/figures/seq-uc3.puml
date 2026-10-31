@@ -1,0 +1,34 @@
+@startuml
+' Sequence diagram for UC-3, select and draw the figure.
+' Build:  plantuml -tpng -charset UTF-8 figures/seq-uc3.puml
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam maxMessageSize 150
+skinparam ArrowColor #622423
+skinparam sequenceParticipantBorderColor #622423
+skinparam sequenceLifeLineBorderColor #622423
+skinparam ParticipantBackgroundColor #FBFAF9
+
+participant "snap7 : Snapshot" as SN
+participant "Chart" as C
+participant "c1 : HeatMap" as H
+participant "Renderer" as R
+
+SN -> C : chooseKind(q1)
+activate C
+C -> C : decide the chart kind\nfrom the question
+C -> H : create(title, scale, timeWindow)
+activate H
+H -> R : render(snap7)
+activate R
+R --> H : image
+deactivate R
+H --> C : c1 : HeatMap
+deactivate H
+C --> SN : c1
+deactivate C
+
+@enduml

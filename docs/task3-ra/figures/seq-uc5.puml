@@ -1,0 +1,44 @@
+@startuml
+' Sequence diagram for UC-5, show the accuracy dashboard.
+' Build:  plantuml -tpng -charset UTF-8 figures/seq-uc5.puml
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam maxMessageSize 95
+skinparam ArrowColor #622423
+skinparam sequenceActorBorderColor #622423
+skinparam sequenceParticipantBorderColor #622423
+skinparam sequenceLifeLineBorderColor #622423
+skinparam ParticipantBackgroundColor #FBFAF9
+skinparam ActorBackgroundColor #FBFAF9
+
+actor "Reviewer / Auditor" as R
+participant "Dashboard" as D
+participant "bm1 : Benchmark" as B
+participant "rep9 : AccuracyReport" as A
+
+R -> D : open the dashboard
+activate D
+D -> B : cases()
+activate B
+B --> D : the recorded question-and-answer pairs
+deactivate B
+D -> A : compute(bm1)
+activate A
+A -> B : cases()
+activate B
+B --> A : the same pairs
+deactivate B
+A -> A : re-run each case\nand compare with its answer
+A --> D : rep9
+deactivate A
+D --> R : the measured accuracy,\nshown beside the answers
+deactivate D
+note right of A
+  The measured value is still open in
+  Task 2 and is not invented here.
+end note
+
+@enduml

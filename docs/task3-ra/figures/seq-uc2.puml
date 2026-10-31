@@ -1,0 +1,35 @@
+@startuml
+' Sequence diagram for UC-2, retrieve and filter trajectories.
+' Build:  plantuml -tpng -charset UTF-8 figures/seq-uc2.puml
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam maxMessageSize 150
+skinparam ArrowColor #622423
+skinparam sequenceParticipantBorderColor #622423
+skinparam sequenceLifeLineBorderColor #622423
+skinparam ParticipantBackgroundColor #FBFAF9
+
+participant "q1 : Query" as Q
+participant "Store : TrajectoryStore" as S
+participant "t : Trajectory" as T
+participant "snap7 : Snapshot" as SN
+
+Q -> S : select(derivedRequest)
+activate S
+loop for each stored trajectory
+  S -> T : matches(derivedRequest)
+  activate T
+  T --> S : true or false
+  deactivate T
+end
+S -> SN : create(matching trajectories)
+activate SN
+SN --> S : snap7
+deactivate SN
+S --> Q : snap7
+deactivate S
+
+@enduml
