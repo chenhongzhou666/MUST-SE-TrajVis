@@ -26,8 +26,19 @@ Technology. Group 1, team *泓泓说的都队*.
 
 ## Documents
 
-Project proposal (Task 1) and later deliverables live under `docs/`.
+All deliverables live under `docs/`, each with its LaTeX source and the
+generated PDF:
+
+| Folder | Deliverable | Status |
+| --- | --- | --- |
+| `docs/task1-proposal/` | Task 1 — Project proposal | Submitted 2026-10-08 |
+| `docs/task2-urs/` | Task 2 — User requirements specification (+ elicitation material) | Submitted 2026-10-20 |
+| `docs/task3-ra/` | Task 3 — Requirements analysis | Draft complete, due 2026-11-12 |
+
+See `docs/README.md` for details.
 
 ## Status
 
-Proposal stage. The working system is built over the semester.
+Requirements stage. Tasks 1 and 2 are submitted; the requirements analysis
+(Task 3) is in its final draft and the design/implementation phases follow.
+The working system is built over the semester.
